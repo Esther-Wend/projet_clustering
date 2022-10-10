@@ -1,0 +1,518 @@
+---
+title: "Projet clustering"
+author: "KIEMDE - VACLAVALE - HOUNDONOUGBO - MEZUI"
+date: "15/04/2022"
+output: word_document
+---
+
+#Librairies
+```{r}
+library("FactoMineR")
+library("factoextra")
+library("ExPosition")
+```
+
+
+#Pre-traitement
+##Import dataset
+```{r}
+setwd("C:/Users/USER/Documents/Master1_Informatique_Lyon/Semestre 2/Clustering/Clustering")
+data = read.csv("dataset.csv", sep = ";")
+```
+
+##Labelisation
+```{r}
+#Recodage complet du jeu de donn?es afin que les modalit?s soient explicites au maximum
+
+labels_Age = c("18-21","22-25","above 26")
+Age = c(1,2,3)
+data$Age<-factor(data$Age,levels = Age,labels = labels_Age)
+
+
+labels_Sexe = c("female","male")
+Sexe = c(1,2)
+data$Sexe <-factor(data$Sexe ,levels = Sexe ,labels = labels_Sexe )
+
+labels_Type.d.etudes.secondaires = c("private","state","other")
+Type.d.etudes.secondaires = c(1,2,3)
+data$Type.d.etudes.secondaires <-factor(data$Type.d.etudes.secondaires ,levels = Type.d.etudes.secondaires,labels = labels_Type.d.etudes.secondaires )
+
+labels_Type.de.bourse = c("None","25%","50%","75%","Full")
+Type.de.bourse = c(1,2,3,4,5)
+data$Type.de.bourse <-factor(data$Type.de.bourse ,levels = Type.de.bourse ,labels = labels_Type.de.bourse )
+
+labels_Travail.supplementaire = c("Yes","No")
+Travail.supplementaire = c(1,2)
+data$Travail.supplementaire<-factor(data$Travail.supplementaire,levels = Travail.supplementaire,labels = labels_Travail.supplementaire)
+
+labels_Activite.artistique.ou.sportive.reguli.e8.re = c("Yes","No")
+Activite.artistique.ou.sportive.reguli.e8.re = c(1,2)
+data$Activite.artistique.ou.sportive.reguli.e8.re<-factor(data$ Activite.artistique.ou.sportive.reguli.e8.re, levels = Activite.artistique.ou.sportive.reguli.e8.re, labels = labels_Activite.artistique.ou.sportive.reguli.e8.re)
+
+labels_Avez.vous.un.partenaire = c("Yes","No")
+Avez.vous.un.partenaire = c(1,2)
+data$Avez.vous.un.partenaire<-factor(data$Avez.vous.un.partenaire,levels = Avez.vous.un.partenaire,labels = labels_Avez.vous.un.partenaire)
+
+labels_Salaire.total.si.disponible = c("USD 135-200","USD 201-270","USD 271-340","USD 341-410","above 410")
+Salaire.total.si.disponible = c(1,2,3,4,5)
+data$Salaire.total.si.disponible<-factor(data$Salaire.total.si.disponible, levels = Salaire.total.si.disponible,labels = labels_Salaire.total.si.disponible)
+
+labels_Transportation.to.the.university = c("Bus","Private car/taxi","bicycle","Other")
+Transportation.to.the.university = c(1,2,3,4)
+data$Transportation.to.the.university<-factor(data$Transportation.to.the.university,levels =Transportation.to.the.university ,labels =labels_Transportation.to.the.university)
+
+labels_Type.de.logement..a..Chypre = c("rental","dormitory","with family","Other")
+Type.de.logement..a..Chypre = c(1,2,3,4)
+data$Type.de.logement..a..Chypre<-factor(data$Type.de.logement..a..Chypre,levels =Type.de.logement..a..Chypre ,labels =labels_Type.de.logement..a..Chypre)
+
+labels_Scolarite.des.m?res = c("primary school","secondary school","high school","university","MSc.","Ph.D.")
+Scolarite.des.m?res = c(1,2,3,4,5,6)
+data$Scolarite.des.m?res<-factor(data$Scolarite.des.m?res,levels =Scolarite.des.m?res ,labels =labels_Scolarite.des.m?res)
+
+#
+labels_Scolarite.des.p?res = c("primary school","secondary school","high school", "university", "MSc.", "Ph.D.")
+Scolarite.des.p?res = c(1,2,3,4,5,6)
+data$Scolarite.des.p?res<-factor(data$Scolarite.des.p?res, levels = Scolarite.des.p?res , labels = labels_Scolarite.des.p?res)
+
+labels_Nombre.de.soeurs.fr?res = c("1", "2","3","4","5 or above")
+Nombre.de.soeurs.fr?res  = c(1,2,3,4,5)
+data$Nombre.de.soeurs.fr?res = factor(data$Nombre.de.soeurs.fr?res, levels = Nombre.de.soeurs.fr?res, labels = labels_Nombre.de.soeurs.fr?res)
+
+labels_Statut.parental = c("married","divorced","died - one of them or both")
+Statut.parental = c(1,2,3)
+data$Statut.parental<-factor(data$Statut.parental,levels = Statut.parental ,labels =labels_Statut.parental)
+
+
+
+labels_Profession.de.la.m?re  = c("retired","housewife","government officer","private sector employee","self-employment","other")
+Profession.de.la.m?re = c(1,2,3,4,5,6)
+data$Profession.de.la.m?re <-factor(data$Profession.de.la.m?re ,levels =Profession.de.la.m?re ,labels =labels_Profession.de.la.m?re)
+
+labels_Profession.du.p?re = c("retired","government officer","private sector employee","self-employment","other")
+Profession.du.p?re = c(1,2,3,4,5)
+data$Profession.du.p?re <-factor(data$Profession.du.p?re ,levels =Profession.du.p?re ,labels =labels_Profession.du.p?re)
+
+
+labels_Heures.d.etude.hebdomadaires = c("None","<5 hours","6-10 hours","11-20 hours","more than 20 hours")
+Heures.d.etude.hebdomadaires = c(1,2,3,4,5)
+data$Heures.d.etude.hebdomadaires <-factor(data$Heures.d.etude.hebdomadaires ,levels =Heures.d.etude.hebdomadaires,labels =labels_Heures.d.etude.hebdomadaires)
+
+
+Frequence.de.lecture=c(1,2,3)
+labels_Frequence.de.lecture=c("None","Sometimes","Often")
+data$Frequence.de.lecture <-factor(data$Frequence.de.lecture, 
+                                   levels =Frequence.de.lecture, 
+                                   labels = labels_Frequence.de.lecture)
+
+
+
+Frequence.de.lecture.1=c(1,2,3)
+labels_Frequence.de.lecture.1=c("None","Sometimes","Often")
+data$Frequence.de.lecture.1 <-factor(data$Frequence.de.lecture.1, 
+                                     levels =Frequence.de.lecture.1, 
+                                     labels =labels_Frequence.de.lecture.1)
+
+
+Participation.aux.seminaires.conferences.lies.au.departement=c(1,2)
+labels_Participation.aux.seminaires.conferences.lies.au.departement=c("Yes","No")
+data$Participation.aux.seminaires.conferences.lies.au.departement<-factor(
+  data$Participation.aux.seminaires.conferences.lies.au.departement ,
+  levels =Participation.aux.seminaires.conferences.lies.au.departement,
+  labels = labels_Participation.aux.seminaires.conferences.lies.au.departement)
+
+
+
+Impact.de.vos.projets.activites.sur.votre.reussite=c(1,2,3)
+labels_Impact.de.vos.projets.activites.sur.votre.reussite=c("positive","negative","neutral")
+data$Impact.de.vos.projets.activites.sur.votre.reussite=factor(
+  data$Impact.de.vos.projets.activites.sur.votre.reussite,
+  levels=Impact.de.vos.projets.activites.sur.votre.reussite,
+  labels=labels_Impact.de.vos.projets.activites.sur.votre.reussite)
+
+
+Participation.aux.cours=c(1,2,3)
+labels_Participation.aux.cours=c("always","sometimes","never")
+data$Participation.aux.cours=factor(data$Participation.aux.cours,
+                                    levels=Participation.aux.cours,
+                                      labels=labels_Participation.aux.cours)
+
+Preparation.aux.examens.de.mi.session.1=c(1,2,3)
+labels_Preparation.aux.examens.de.mi.session.1=c("alone","with friends","not applicable")
+data$Preparation.aux.examens.de.mi.session.1=factor(data$Preparation.aux.examens.de.mi.session.1,levels=Preparation.aux.examens.de.mi.session.1,labels=labels_Preparation.aux.examens.de.mi.session.1)
+
+
+Preparation.aux.examens.de.mi.session.2=c(1,2,3)
+labels_Preparation.aux.examens.de.mi.session.2=c("closest date to the exam","regularly during the semester","never")
+data$Preparation.aux.examens.de.mi.session.2=factor(data$Preparation.aux.examens.de.mi.session.2,levels=Preparation.aux.examens.de.mi.session.2,labels=labels_Preparation.aux.examens.de.mi.session.2)
+
+
+Prendre.des.notes.en.cours=c(1,2,3)
+labels_Prendre.des.notes.en.cours = c("never","sometimes","always")
+data$Prendre.des.notes.en.cours=factor(data$Prendre.des.notes.en.cours,levels=Prendre.des.notes.en.cours,labels=labels_Prendre.des.notes.en.cours)
+
+ecouter.en.cours=c(1,2,3)
+labels_ecouter.en.cours=c("never","sometimes","always")
+data$ecouter.en.cours=factor(data$ecouter.en.cours,levels=ecouter.en.cours,labels=labels_ecouter.en.cours)
+
+La.discussion.ameliore.mon.inter.ea.t.et.ma.reussite.dans.le.cours=c(1,2,3)
+labels_La.discussion.ameliore.mon.inter.ea.t.et.ma.reussite.dans.le.cours=c("never","sometimes","always")
+data$La.discussion.ameliore.mon.inter.ea.t.et.ma.reussite.dans.le.cours=factor(data$La.discussion.ameliore.mon.inter.ea.t.et.ma.reussite.dans.le.cours,levels=La.discussion.ameliore.mon.inter.ea.t.et.ma.reussite.dans.le.cours,labels=labels_La.discussion.ameliore.mon.inter.ea.t.et.ma.reussite.dans.le.cours)
+
+
+Flip.classroom=c(1,2,3)
+labels_Flip.classroom=c("not useful","useful","not applicable")
+data$Flip.classroom=factor(data$Flip.classroom,levels=Flip.classroom,labels=labels_Flip.classroom)
+
+
+Note.cumulee.moyenne.ponderee.au.cours.du.dernier.semestre=c(1,2,3,4,5)
+labels_Note.cumulee.moyenne.ponderee.au.cours.du.dernier.semestre=c("<2.00","2.00-2.49","2.50-2.99","3.00-3.49","above 3.49")
+data$Note.cumulee.moyenne.ponderee.au.cours.du.dernier.semestre=factor(data$Note.cumulee.moyenne.ponderee.au.cours.du.dernier.semestre,levels=Note.cumulee.moyenne.ponderee.au.cours.du.dernier.semestre,labels=labels_Note.cumulee.moyenne.ponderee.au.cours.du.dernier.semestre)
+
+
+Moyenne.ponderee.cumulative.attendue..e0..l.obtention.du.dipl.f4.me=c(1,2,3,4,5)
+labels_Moyenne.ponderee.cumulative.attendue..e0..l.obtention.du.dipl.f4.me=c("<2.00","2.00-2.49","2.50-2.99","3.00-3.49","above 3.49")
+data$Moyenne.ponderee.cumulative.attendue..e0..l.obtention.du.dipl.f4.me=factor(data$Moyenne.ponderee.cumulative.attendue..e0..l.obtention.du.dipl.f4.me,levels=Moyenne.ponderee.cumulative.attendue..e0..l.obtention.du.dipl.f4.me,labels=labels_Moyenne.ponderee.cumulative.attendue..e0..l.obtention.du.dipl.f4.me)
+
+Grade = c(0,1,2,3,4,5,6,7)
+labels_Grade = c("Fail","DD","DC","CC","CB","BB","BA","AA")
+data$Grade = factor(data$Grade,levels=Grade,labels=labels_Grade)
+```
+
+
+##Rename columns
+```{r}
+#colnames(data)
+colnames(data) = c("id","age","sexe","etudes_sec","type_bourse","travail_supp","art_sport","partenaire","salaire","transport","logement","scolarite_mere","scolarite_pere","nb_frere_soeur","statut_parental","profession_mere","profession_pere","heures_etude","freq_lecture","freq_lecture1","seminaire_conference","impact_projet_reussite","participation","preparation_exam1","preparation_exam2","notes","ecouter_cours","effet_discussion","flip_classe","moy_semestre","moy_an_estimee","course_id","grade")
+
+#Sauvegarde
+#write.table(data,"nw_dataset.csv", col.names = TRUE, sep = ";", row.names = FALSE)
+
+```
+
+##Regroupement de classes
+```{r}
+data_rec = data
+
+#gestion des types factor
+data_rec[,c("type_bourse","salaire","transport","logement","scolarite_mere","scolarite_pere","heures_etude","grade")] = apply(data_rec[,c("type_bourse","salaire","transport","logement","scolarite_mere","scolarite_pere","heures_etude","grade")], 2, as.character)
+
+#on effectue les regroupement pour ?liminer les modalit?s trop peu fr?quentes
+data_rec$type_bourse[data_rec$type_bourse == "25%"] = "<=50%"
+data_rec$type_bourse[data_rec$type_bourse == "50%"] = "<=50%"
+data_rec$type_bourse[data_rec$type_bourse == "75%"] = ">50%"
+data_rec$type_bourse[data_rec$type_bourse == "Full"] = ">50%"
+data_rec$salaire[data_rec$salaire == "USD 341-410"] = "=>341"
+data_rec$salaire[data_rec$salaire == "above 410"] = "=>341"
+data_rec$transport[data_rec$transport == "bicycle"] = "Other"
+data_rec$transport[data_rec$transport == "Other"] = "Other"
+data_rec$logement[data_rec$logement == "Other"] = "with family"
+data_rec$logement[data_rec$logement == "with family"] = "with family"
+data_rec$scolarite_mere[data_rec$scolarite_mere == "Ph.D."] = "Bac+5 et plus"
+data_rec$scolarite_mere[data_rec$scolarite_mere == "MSc"] = "Bac+5 et plus"
+data_rec$scolarite_pere[data_rec$scolarite_pere == "MSc"] = "Bac+5 et plus"
+data_rec$scolarite_pere[data_rec$scolarite_pere == "Ph.D."] = "Bac+5 et plus"
+data_rec$heures_etude[data_rec$heures_etude == "more than 20 hours"] = ">11h"
+data_rec$heures_etude[data_rec$heures_etude == "11-20 hours"] = ">11h"
+data_rec$grade[data_rec$grade == "DD"] = "passable"
+data_rec$grade[data_rec$grade == "DC"] = "passable"
+data_rec$grade[data_rec$grade == "CC"] = "assez bien"
+data_rec$grade[data_rec$grade == "CB"] = "assez bien"
+data_rec$grade[data_rec$grade == "BB"] = "bien"
+data_rec$grade[data_rec$grade == "BA"] = "bien"
+data_rec$grade[data_rec$grade == "AA"] = "tres bien"
+
+
+#data_rec
+
+#Sauvegarde
+#write.table(data_rec,"nww_dataset.csv", col.names = TRUE, sep = ";", row.names = FALSE)
+```
+
+
+#Etude de la performance des ?tudiants
+##Description du nouveau jeu de donn?es
+```{r}
+
+setwd("C:/Users/USER/Documents/Master1_Informatique_Lyon/Semestre 2/Clustering/Clustering")
+data_rec<-read.csv("nww_dataset.csv",header=T,sep=";",stringsAsFactors = T,row.names = "id")
+data_rec
+summary(data_rec)
+```
+on remarque que certaines classes des varibles sont d?sequilibr?es notamment le diplome de la m?re, etc
+
+
+##Base pour r?aliser l'acm
+```{r}
+d.analyse<-data_rec 
+```
+
+
+##1ere ACM r?alisation d'une ACM car il y a plusieurs variables qualitatives dans l'?tude
+```{r}
+
+res.mca <- MCA(d.analyse, quanti.sup = 31,quali.sup = 32, graph = FALSE)  
+
+#print(res.mca)
+#str(d.analyse)
+```
+
+###Choix du nombre d'axes
+```{r}
+eig.val <- get_eigenvalue(res.mca) 
+#ig.val
+s<-dim(res.mca)-1
+
+fviz_eig(res.mca, addlabels = TRUE, ylim = c(0, 30))
+barplot(res.mca$eig[,1], main="Les valeurs propres", names.arg=1:nrow(res.mca$eig)) 
+abline(h=1/s,col=2,lwd=2)
+```
+le taux d'inertie aux deux premiers axes n'exede pas 10% cela est d? à un nombre
+important des variables qualitative (31 variables).ce derneir est dilué par ce nombre élévé des modalités  des variables qualitatives, avec parfois des classes très désequilibrées.
+
+Pour ameliorer le taux d'inertie nous allons selectionner des variables significatives à notre variable d'interêt "grade" et regrouper les modalité qui ne sont pas représentative au sein d'une varaible pour équilibrer les classes
+
+
+###Selection des variables
+```{r warning=FALSE}
+j = 0 #compteur
+var_sel = "" #liste des variables s?lectionn?es
+#on cr?e une fonction qui enregistrera les variables du jeu de donn?es qui sont li?es ? la variable cible
+for (i in c(1:(ncol(data_rec)-1))){
+  t = chisq.test(data_rec[,colnames(data_rec)[i]], data_rec$grade)
+  if (t$p.value <= 0.05){ #si le test est significatif alors on enregistre la variable
+    j = j+1
+    print(paste(j, " | ",colnames(data_rec)[i]," | grade | ",t$p.value))
+    var_sel =  c(var_sel,colnames(data_rec)[i])
+  }
+}
+
+
+
+#var_sel
+data_sel = data_rec[,c("id",var_sel[-1],"grade")] #on cr?e un nouveau jeu de donn?es avec ces variables uniquement
+
+#Sauvegarde
+#write.table(data_sel,"nwww_dataset.csv", col.names = TRUE, sep = ";", row.names = FALSE)
+```
+
+
+
+
+##ACM apr?s pr?traitement de la base
+###importation des donn?es trait?es et intitialisation de l'ACM
+```{r}
+setwd("C:/Users/USER/Documents/Master1_Informatique_Lyon/Semestre 2/Clustering/Clustering")
+
+data.traite<-read.csv("nwww_dataset.csv",header=T,sep=";",stringsAsFactors = T,row.names = "id")
+
+d.analyse<-data.traite  
+#tr(d.analyse)
+
+res.mca <- MCA(d.analyse, quanti.sup = 9,quali.sup =10, graph = FALSE)  
+```
+
+
+###Choix nombre d'axes
+```{r}
+eig.val <- get_eigenvalue(res.mca) 
+#eig.val
+s<-dim(res.mca)-1
+
+fviz_eig(res.mca, addlabels = TRUE, ylim = c(0, 30))
+barplot(res.mca$eig[,1], main="Les valeurs propres", names.arg=1:nrow(res.mca$eig)) 
+abline(h=1/s,col=2,lwd=2)
+```
+Avec ce prétraitement des données, on voit clairement que le taux d'inertie a  augmenter pour les deux premiers axes, passant de 9% a 21%.
+Nous rétenons les deux premiers axes pour la suite de notre analyse ACMnotre analyse ACM
+
+### Correction de Benzecri
+```{r}
+res.mca.benzecri = epMCA(d.analyse[,1:8], graph = FALSE, correction = "b")
+#la fonction epMCA n'accepte pas de variables supplémentaires mais cela n'a pas d'impact sur le calcul des valeurs propres et leur correction
+
+fviz_eig(res.mca.benzecri, ylim=c(0,100))
+#barplot(res.mca.benzecri$eig[,1], main="Les valeurs propres") 
+#abline(h=1/s,col=2,lwd=2)
+```
+On ne va donner une interprétation sémantique au premier axe.
+
+###Analyse des résultats des modalités
+####Axe 1
+```{r}
+var <- get_mca_var(res.mca)
+coord<-var$coord[,1]
+contrib<-var$contrib[,1]
+cos2<-var$cos2[,1]
+display<-cbind(coord,contrib,cos2)
+display
+```
+Le coté positif de l'axe 1 est caractérisé par le moyen de transport privé/taxi ,vivre en famille, et fonctionnaire comme profession de la mère, par opposition le coté négatif est caratérisé par menagère comme profession de la mère,bus comme moyen de transport et le genre garçon.
+
+
+####Axe 2
+```{r}
+var <- get_mca_var(res.mca)
+coord<-var$coord[,2]
+contrib<-var$contrib[,2]
+cos2<-var$cos2[,2]
+display<-cbind(coord,contrib,cos2)
+display
+```
+Le coté negatif est caractérisé par les étudiants n'ayant pas fait un travail supplémentaire , ceux ayant préparé leur examen ? l'approche de l'examen par opposition,et le côté positif est répresenté par les étudiants ayant fait un trvauil supplémentaire et ayant souvent une frequence de lecture 1.
+
+
+### Representation des variables
+```{r}
+fviz_mca_var(res.mca, col.var = "contrib",
+             gradient.cols = c ("#00AFBB", "#E7B800", "#FC4E07"),
+             title="caract?risques des ?tudiants",
+             repel = TRUE)
+```
+
+
+### Analyse des resultats des individus
+#### Axe 1
+```{r}
+ind <- get_mca_ind (res.mca)
+coord<-ind$coord[,1]
+contrib<-ind$contrib[,1]
+cos2<-ind$cos2[,1]
+display<-cbind(coord,contrib,cos2)
+display
+```
+Les étudiants studiants12,students127,student139 contribuent au mieux ? la formation de l'axe 1 du coté positif et ils sont caracterisés par les modalités qui representent le coté positif de l'axe 1 .Par opposition des ?tudiants student56,student85, student29 contribuent ? la formation de l?axe 1 du coté négatif. ces derniers sont caratérisés par les modalités qui représentent l'axe 1 du coté négatif.
+
+
+
+#### Axe 2
+```{r}
+ind <- get_mca_ind (res.mca)
+coord<-ind$coord[,2]
+contrib<-ind$contrib[,2]
+cos2<-ind$cos2[,2]
+display<-cbind(coord,contrib,cos2)
+display
+```
+Les étudiants students56,students12,student85 contribuent au mieux ? la formation de l'axe 2 du coté positif et ils sont caracterisés par les modalités qui representent le coté positif de l'axe 2 .Par opposition des étudiants student3,student111, student88 contribuent ? la formation de l'axe 2 du coté négatif. ces derniers sont caratérisés par les modalités qui représentent l'axe 1 du coté négatif.
+
+### Représentation graphique des individus
+```{r}
+fviz_mca_ind (res.mca, select.ind = list(cos2 = 100), col.ind = "contrib",
+              title="profils ?tudiants ",
+              gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+              repel =TRUE)
+```
+
+### Etudiants et leurs caract?risteques de performances (modalites des variables)
+```{r}
+fviz_mca_biplot (res.mca, select.ind = list(cos2 = 100), 
+                 col.var="blue",col.ind = "contrib",
+                 title=" 100 ?tudiants les mieux represent?s)",
+              gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+              repel =TRUE,choice = "var.cat")
+```
+
+Quatre profils d’étudiants se dégagent. Le premier profil représente des étudiants qui ont des résultats Fail(défaillants) caractérisé par une utilisation de moyen privé pour leur déplacement, vivent en famille et ayant une moyenne en dessous de 2. Le deuxième groupe d’étudiants ont des résultats très bien, caractérisés par une éducation élevée des parents(universitaire), avec un mode de logement comme dortoir, qui sont des hommes et ont une moyenne supérieure à 3.49. Le groupe suivant a obtenu un grade Passable caractérisé par des étudiants qui ont préparé leur examen entre amis, sont logé en location, ont une moyenne comprise entre 2 et 2.49 et ont
+11un âge compris entre 22 et 25 ans. Le dernier profil de groupe sont des étudiants qui ont des résultats assez bien ou bien, caractérisés par une préparation seul de leurs examens, utilisant le bus comme moyen de transport, dont le niveau d’étude de leurs parents est faible, qui ont des moyennes comprises entre 3 et 3.49. et sont des garçons.
+
+
+
+## Classification ascendante hiérarchique:
+
+```{r}
+res.hcpc<-HCPC(res.mca, method="ward", graph = FALSE)
+```
+
+### Visualisation des r?sultats:
+```{r}
+# Dendrogramme
+fviz_dend(res.hcpc, show_labels = FALSE)
+typologie<-res.hcpc$data.clus[,10]
+```
+Interpretation : Le dendrogramme suggère  une coupure en 3 classes. Nous pouvons visualiser les individus et leurs classes d'appartenance sur le premier plan factoriel de l'ACM
+
+#### Individus
+```{r}
+fviz_cluster(res.hcpc, geom = "point",addlabels = TRUE, main = "Factor map")
+
+fviz_cluster(res.hcpc,
+             repel = TRUE,            # Evite le chevauchement des textes
+             show.clust.cent = TRUE, # Montre le centre des clusters
+             palette = "jco",         # Palette de couleurs, voir ?ggpubr::ggpar
+             ggtheme = theme_minimal(),
+             main = "Factor map"
+             )
+```
+Nous souhaitons maintenant déterminer en quoi ces 3 classes différent, voir quelles sont les caractéristiques des élèves représentées dans ces classes. Les groupes peuvent etre décrits par i) les variables et / ou cat?gories, ii) les axes principaux et iii) les individus. Dans l'exemple ci-dessous, nous affichons uniquement une partie des résultats.
+
+
+#### Variables et catégories
+
+```{r message=FALSE, warning=FALSE}
+resul_var = res.hcpc$desc.var$test.chi2 # Description par les variables
+View(resul_var)
+```
+Interpretation : Le tableau ci-dessus nous montre quelles sont les variables qui caractérisent la plupart des groupes. Il s’agit des variables liées à la moyenne estimé par année de l’étudiant, à la moyenne par semestre de l’étudiant, au type de logement, au sexe de l’étudiant, à l’age de l’étudiant, au niveau d’étude de la mère, au type de transport utilisé et au grade de l’étudiant.
+
+
+On peut regarder le détail de chaque classe, modalité par modalité. Ci-dessous, les colonnes correspondent à des proportions. La 1ère correspond à la proportion d’étudiants possédant une modalité qui se trouve dans une classe. La 2ème correspond à la proportion d’étudiant se trouvant dans la classe ayant cette modalité. La 3ème correspond à la proportion d’individus possédant la modalité toute classe confondue.
+
+
+```{r}
+resul_cat=res.hcpc$desc.var$category # Description par les modalit?s
+classe_1 = resul_cat$`1`
+classe_2 = resul_cat$`2`
+classe_3 = resul_cat$`3`
+View(classe_1)
+View(classe_2)
+View(classe_3)
+```
+INTERPRETATAION : Il s'agit des variables liées ? la moyenne estimé par an de l'étudiant, ? la moyenne par semestre de l'étudiant, au type de logement, au sexe de l'étudiant, l'age de l'étudiant, au niveau d'?tude de la mère, au type de transport utilisé et au grade de l'étudiant. 
+
+
+#Commentaires sur la classe 1 : 
+La quasi totalité des étudiants de la classe 1 ont une moyenne estimée par an comprise entre 3 et 3.49 , une moyenne par semestre au-dessus de 3.49 élevée , ils ont moins de 26 ans et la majeur partie des étudiants ayant ces caract?ristiques sont dans cette classe. En regardant la 2eme colonne, en ce qui concernant les lignes suivantes, nous pouvons dire par rapport aux étudiants se trouvant dans cette classe que plus de 65% dorment dans des dotoirs, plus de la moitié sont des hommes(88,37%). Une part non n?gligeable (27%) utilisent des tranports de type autres ( ni cars, bus , taxi). 25% ont une mère ayant fait des etudes universitaires et 26% ont le grade passable.
+
+
+#Commentaires sur la classe 2 : 
+Par rapport ? la deuxi?me colonne, on remarque que 56% dorment dans des logements lou?s. 66% ont une moyenne par semestre au-dessus de 3.49
+et 50% sont des filles. 28% ont une m?re dont le niveau d??ducation est le secondaire.
+
+#Commentaires sur la classe 3 : 
+Par rapport ? la deuxi?me colonne, plus de la moiti? ont une moyenne estim? par ann?e et une moyenne par semestre sup?rieur ? 2. 40% utilisent des tranports de type car ou taxi. 20 % ont ?chou?s et 10% ont une m?re dont le niveau d??ducation est le bacalaur?at.
+
+
+
+### Description par les axes principaux
+```{r}
+resul_axe = res.hcpc$desc.axes$quanti #Description par les axes factoriels
+classe_1 = resul_axe$`1`
+classe_2 = resul_axe$`2`
+classe_3 = resul_axe$`3`
+View(classe_1)
+View(classe_2)
+View(classe_3)
+```
+INTERPRETATION : Les résultats ci-dessus indiquent que les individus dans les groupes 1 ont des coordonnées élevées sur les axes 1,2 et 5. Les individus du groupe 2 ont des coordonnées élevées sur les axes 1,2,3 et 4. Les individus appartenant au troisième groupe ont des coordonnées élevées sur les axes 1,2,3 et 4.
+
+
+### Description par les individus
+```{r}
+res.hcpc$desc.ind #Parangons et individus caract?tistiques
+```
+Interprétation :  Pour chaque groupe, les 5 meilleurs individus les plus proches du centre du cluster sont affich?s. Ces individus sont appel?s paragones. La distance entre chaque individu et le centre du groupe est fournie. Par exemple, les individus représentatifs pour le groupe 1 inclus: STUDENT48, STUDENT103,STUDENT62, STUDENT104,  STUDENT71 .
+
+
+
+
+### **Repr?sentation graphique des etudiants sur le 1er plan factoriel**
+En les coloriant selon leur classe par rapport au grade
+
+```{r message=FALSE, warning=FALSE}
+#windows()
+
+fviz_pca_ind (res.mca, select.ind = list(cos2 = 100), 
+              col.ind = typologie,
+              legend.title = "Classification des ?tudiants selon Grade",
+              repel = TRUE)
+```
